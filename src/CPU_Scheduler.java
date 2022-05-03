@@ -16,6 +16,8 @@ public class CPU_Scheduler extends JFrame {
     private DefaultTableModel input_model, output_model;
     private JTable input_table;
     private JTable output_table;
+    JTextField text_average = new JTextField();
+    JTextField text_execution = new JTextField();
     private String input_table_header[] = {"Process", "PID", "도착시간", "실행시간", "우선순위"};
     private String output_table_header[] = {"Process", "PID", "Turnaround time", "Waiting time", "Response time"};
     private int process_count = 0;
@@ -67,8 +69,7 @@ public class CPU_Scheduler extends JFrame {
         execution.setBounds(600, 130, 150, 20);
         contentPane.add(average);
         contentPane.add(execution);
-        JTextField text_average = new JTextField();
-        JTextField text_execution = new JTextField();
+
         text_average.setBounds(750, 80, 50, 20);
         text_execution.setBounds(750, 130, 50, 20);
         text_average.setEditable(false);
@@ -126,6 +127,11 @@ public class CPU_Scheduler extends JFrame {
     }
 
     private void File_Input() {
+        while(input_model.getRowCount() > 0){
+            input_model.removeRow(0);
+        }
+        text_average.setText(null);
+        text_execution.setText(null);
         total_executionTime = 0;
         process_count = 0;
         String filePath = "";
