@@ -110,21 +110,9 @@ public class CPU_Scheduler extends JFrame {
                     output_model.removeRow(0);
                 }
                 int scheduling_num = chooseAlgorithm.getSelectedIndex();
-                switch(scheduling_num){
-                    case 0:
-                        FCFS run_FCFS = new FCFS();
-                        average_waitingTime = run_FCFS.Scheduling(input_model, output_model, chart, total_executionTime);
-                        break;
-                    case 1:
-                        SJF run_SJF = new SJF();
-                        average_waitingTime = run_SJF.Scheduling(input_model, output_model, chart, total_executionTime);
-                        break;
-                    case 3:
-                        Priority_nonpreemptive run_Priority_nonpreemptive = new Priority_nonpreemptive();
-                        average_waitingTime = run_Priority_nonpreemptive.Scheduling(input_model, output_model, chart, total_executionTime);
-                        break;
 
-                }
+                average_waitingTime = Scheduling.run(input_model, output_model, chart, total_executionTime, scheduling_num);
+                Arr_Process.clear();
                 average_waitingTime = ((double)Math.round(average_waitingTime*100)/100);
                 total_executionTime = ((double)Math.round(total_executionTime*10)/10);
                 text_average.setText(String.valueOf(average_waitingTime));
