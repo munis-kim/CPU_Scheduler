@@ -1,3 +1,7 @@
+package logic;
+
+import datatype.Gantt_data;
+
 import javax.swing.*;
 import java.util.ArrayList;
 
