@@ -1,3 +1,5 @@
+package datatype;
+
 public class Gantt_data {
     int pID;
     int start_time;

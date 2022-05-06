@@ -1,3 +1,5 @@
+package datatype;
+
 public class Scheduling_Result {
     String name, PID, TurnaroundTime, WaitingTime, ResponseTime;
 
@@ -7,5 +9,25 @@ public class Scheduling_Result {
         this.TurnaroundTime = TurnaroundTime;
         this.WaitingTime = WaitingTime;
         this.ResponseTime = ResponseTime;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public String getPID(){
+        return PID;
+    }
+
+    public String getTurnaroundTime(){
+        return TurnaroundTime;
+    }
+
+    public String getWaitingTime(){
+        return WaitingTime;
+    }
+
+    public String getResponseTime(){
+        return ResponseTime;
     }
 }

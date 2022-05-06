@@ -1,3 +1,5 @@
+import datatype.Process_Data;
+import algorithm.*;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -6,20 +8,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Vector;
 
 public class CPU_Scheduler extends JFrame {
-    private final ArrayList<Process> Arr_Process = new ArrayList<>();
+    private final ArrayList<Process_Data> Arr_Process = new ArrayList<>();
     private DefaultTableModel input_model, output_model;
     private JTable input_table;
     private JTable output_table;
     JTextField text_average = new JTextField();
     JTextField text_execution = new JTextField();
-    private String input_table_header[] = {"Process", "PID", "도착시간", "실행시간", "우선순위"};
-    private String output_table_header[] = {"Process", "PID", "Turnaround time", "Waiting time", "Response time"};
+    private String input_table_header[] = {"datatype.Process", "PID", "도착시간", "실행시간", "우선순위"};
+    private String output_table_header[] = {"datatype.Process", "PID", "Turnaround time", "Waiting time", "Response time"};
     private int process_count = 0;
     double average_waitingTime = 0;
     double total_executionTime = 0;
@@ -95,10 +96,11 @@ public class CPU_Scheduler extends JFrame {
         chooseAlgorithm.addItem("FCFS Scheduling");
         chooseAlgorithm.addItem("SJF Scheduling");
         chooseAlgorithm.addItem("SRTF Scheduling");
-        chooseAlgorithm.addItem("Priority Scheduling");
+        chooseAlgorithm.addItem("Priority_nonpreemptive Scheduling");
+        chooseAlgorithm.addItem("Priority_preemptive Scheduling");
         chooseAlgorithm.addItem("Round-Robin Scheduling");
         chooseAlgorithm.addItem("My Scheduling");
-        chooseAlgorithm.setBounds(700, 10, 200, 30);
+        chooseAlgorithm.setBounds(700, 10, 250, 30);
         contentPane.add(chooseAlgorithm);
 
         JButton runBtn = new JButton("Run");
@@ -112,6 +114,14 @@ public class CPU_Scheduler extends JFrame {
                     case 0:
                         FCFS run_FCFS = new FCFS();
                         average_waitingTime = run_FCFS.Scheduling(input_model, output_model, chart, total_executionTime);
+                        break;
+                    case 1:
+                        SJF run_SJF = new SJF();
+                        average_waitingTime = run_SJF.Scheduling(input_model, output_model, chart, total_executionTime);
+                        break;
+                    case 3:
+                        Priority_nonpreemptive run_Priority_nonpreemptive = new Priority_nonpreemptive();
+                        average_waitingTime = run_Priority_nonpreemptive.Scheduling(input_model, output_model, chart, total_executionTime);
                         break;
 
                 }
@@ -161,7 +171,7 @@ public class CPU_Scheduler extends JFrame {
                 int burstTime = Integer.parseInt(temp[3]);
                 int priority = Integer.parseInt(temp[4]);
                 total_executionTime += Double.parseDouble(temp[3]);
-                Process tmp = new Process(name, pid, burstTime, arriveTime, priority);
+                Process_Data tmp = new Process_Data(name, pid, burstTime, arriveTime, priority);
                 Arr_Process.add(tmp);
             }
 
@@ -171,12 +181,12 @@ public class CPU_Scheduler extends JFrame {
 
         for (int i = 0; i < process_count; ++i) {
             Vector<String> row = new Vector<>();
-            Process pro_tmp = Arr_Process.get(i);
-            row.add(pro_tmp.name);
-            row.add(Integer.toString(pro_tmp.pID));
-            row.add(Integer.toString(pro_tmp.ArriveTime));
-            row.add(Integer.toString(pro_tmp.BurstTime));
-            row.add(Integer.toString((pro_tmp.Priority)));
+            Process_Data pro_tmp = Arr_Process.get(i);
+            row.add(pro_tmp.getName());
+            row.add(Integer.toString(pro_tmp.getPID()));
+            row.add(Integer.toString(pro_tmp.getArriveTime()));
+            row.add(Integer.toString(pro_tmp.getBurstTime()));
+            row.add(Integer.toString((pro_tmp.getPriority())));
             input_model.addRow(row);
         }
     }
