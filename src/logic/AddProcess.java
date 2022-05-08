@@ -1,6 +1,7 @@
 package logic;
 
 import datatype.Process_Data;
+import datatype.Scheduling_Result;
 
 import javax.swing.table.DefaultTableModel;
 
