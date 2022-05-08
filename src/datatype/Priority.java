@@ -1,10 +1,11 @@
-package algorithm;
+package datatype;
 
 import datatype.Process_Data;
-import java.util.*;
 
-public class Priority_nonpreemptive {
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
+public class Priority {
     public static PriorityQueue<Process_Data> setPriority(){
         PriorityQueue<Process_Data> processes = new PriorityQueue<>(new Comparator<Process_Data>() {
             @Override
@@ -14,9 +15,9 @@ public class Priority_nonpreemptive {
                 else if(p1.getPriority() < p2.getPriority())
                     return 1;
                 else{
-                    if(p1.getBurstTime() > p2.getBurstTime())
+                    if(p1.getRemainTime() > p2.getRemainTime())
                         return 1;
-                    else if(p1.getBurstTime() < p2.getBurstTime())
+                    else if(p1.getRemainTime() < p2.getRemainTime())
                         return -1;
                     else{
                         if(p1.getArriveTime() > p2.getArriveTime())

@@ -19,9 +19,10 @@ public class CPU_Scheduler extends JFrame {
     private JTable output_table;
     JTextField text_average = new JTextField();
     JTextField text_execution = new JTextField();
-    private String input_table_header[] = {"datatype.Process", "PID", "도착시간", "실행시간", "우선순위"};
-    private String output_table_header[] = {"datatype.Process", "PID", "Turnaround time", "Waiting time", "Response time"};
+    private String input_table_header[] = {"Process", "PID", "도착시간", "실행시간", "우선순위"};
+    private String output_table_header[] = {"Process", "PID", "Turnaround time", "Waiting time", "Response time"};
     private int process_count = 0;
+    private int time_slice = 1;
     double average_waitingTime = 0;
     double total_executionTime = 0;
     Container contentPane = getContentPane();
@@ -94,13 +95,14 @@ public class CPU_Scheduler extends JFrame {
 
         JComboBox chooseAlgorithm = new JComboBox();
         chooseAlgorithm.addItem("FCFS Scheduling");
-        chooseAlgorithm.addItem("SJF Scheduling");
-        chooseAlgorithm.addItem("SRTF Scheduling");
+        chooseAlgorithm.addItem("Shortest Job First Scheduling");
+        chooseAlgorithm.addItem("Shortest Remaining Time First Scheduling");
         chooseAlgorithm.addItem("Priority_nonpreemptive Scheduling");
         chooseAlgorithm.addItem("Priority_preemptive Scheduling");
-        chooseAlgorithm.addItem("Round-Robin Scheduling");
+        chooseAlgorithm.addItem("Highest Response Ratio Next Scheduling");
+        chooseAlgorithm.addItem("Round Robin Scheduling");
         chooseAlgorithm.addItem("My Scheduling");
-        chooseAlgorithm.setBounds(700, 10, 250, 30);
+        chooseAlgorithm.setBounds(700, 10, 280, 30);
         contentPane.add(chooseAlgorithm);
 
         JButton runBtn = new JButton("Run");
@@ -111,7 +113,7 @@ public class CPU_Scheduler extends JFrame {
                 }
                 int scheduling_num = chooseAlgorithm.getSelectedIndex();
 
-                average_waitingTime = Scheduling.run(input_model, output_model, chart, total_executionTime, scheduling_num);
+                average_waitingTime = Scheduling.run(input_model, output_model, chart, total_executionTime, scheduling_num, time_slice);
                 Arr_Process.clear();
                 average_waitingTime = ((double)Math.round(average_waitingTime*100)/100);
                 total_executionTime = ((double)Math.round(total_executionTime*10)/10);
@@ -121,7 +123,6 @@ public class CPU_Scheduler extends JFrame {
         });
         runBtn.setBounds(121, 586, 97, 23);
         contentPane.add(runBtn);
-
     }
 
     private void File_Input() {
