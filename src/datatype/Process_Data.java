@@ -8,6 +8,7 @@ public class Process_Data {
     int Priority;
     int RemainTime;
     int StartTime = -1;
+    int WaitingTime = 0;
 
     public Process_Data(String name, int PID, int BurstTime, int ArriveTime, int Priority){
         this.name = name;
@@ -46,4 +47,10 @@ public class Process_Data {
         RemainTime--;
     }
 
+    public void setWaitingTime(int time) { this.WaitingTime += time; }
+
+    public double getResponseRatio(){
+        double ret = (double)(WaitingTime + BurstTime) / BurstTime;
+        return ret;
+    }
 }

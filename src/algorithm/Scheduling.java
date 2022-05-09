@@ -50,6 +50,9 @@ public class Scheduling {
                 processes = Priority.setPriority();
                 preemptive = true;
                 break;
+            case 5:
+                processes = HRRN.setPriority();
+                break;
             case 6:
                 isRR = true;
                 break;
