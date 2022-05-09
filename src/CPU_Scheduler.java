@@ -19,6 +19,7 @@ public class CPU_Scheduler extends JFrame {
     private JTable output_table;
     JTextField text_average = new JTextField();
     JTextField text_execution = new JTextField();
+    JTextField text_timeslice = new JTextField();
     private String input_table_header[] = {"Process", "PID", "도착시간", "실행시간", "우선순위"};
     private String output_table_header[] = {"Process", "PID", "Turnaround time", "Waiting time", "Response time"};
     private int process_count = 0;
@@ -67,21 +68,29 @@ public class CPU_Scheduler extends JFrame {
 
         JLabel average = new JLabel("Average WaitingTime");
         JLabel execution = new JLabel("Total ExecutionTime");
+        JLabel timeslice = new JLabel("Time Slice");
         average.setBounds(600, 80, 150, 20);
         execution.setBounds(600, 130, 150, 20);
+        timeslice.setBounds(900, 10, 100, 30);
         contentPane.add(average);
         contentPane.add(execution);
+        contentPane.add(timeslice);
 
         text_average.setBounds(750, 80, 50, 20);
         text_execution.setBounds(750, 130, 50, 20);
+        text_timeslice.setBounds(980, 15, 50, 20);
         text_average.setEditable(false);
         text_execution.setEditable(false);
+        text_timeslice.setEditable(true);
         text_average.setBackground(Color.white);
         text_execution.setBackground(Color.white);
+        text_timeslice.setBackground(Color.white);
         text_average.setBorder(null);
         text_execution.setBorder(null);
+        text_timeslice.setBorder(null);
         contentPane.add(text_average);
         contentPane.add(text_execution);
+        contentPane.add(text_timeslice);
 
         JButton fileOpenBtn = new JButton("OpenFile");
         fileOpenBtn.addActionListener(new ActionListener() {
@@ -102,7 +111,7 @@ public class CPU_Scheduler extends JFrame {
         chooseAlgorithm.addItem("Highest Response Ratio Next Scheduling");
         chooseAlgorithm.addItem("Round Robin Scheduling");
         chooseAlgorithm.addItem("My Scheduling");
-        chooseAlgorithm.setBounds(700, 10, 280, 30);
+        chooseAlgorithm.setBounds(600, 10, 280, 30);
         contentPane.add(chooseAlgorithm);
 
         JButton runBtn = new JButton("Run");
@@ -112,7 +121,8 @@ public class CPU_Scheduler extends JFrame {
                     output_model.removeRow(0);
                 }
                 int scheduling_num = chooseAlgorithm.getSelectedIndex();
-
+                if(scheduling_num == 6)
+                    time_slice = Integer.parseInt(text_timeslice.getText());
                 average_waitingTime = Scheduling.run(input_model, output_model, chart, total_executionTime, scheduling_num, time_slice);
                 Arr_Process.clear();
                 average_waitingTime = ((double)Math.round(average_waitingTime*100)/100);

@@ -16,7 +16,7 @@ import java.util.Queue;
 public class Scheduling {
     public static double run(DefaultTableModel input_model, DefaultTableModel output_model, JPanel contentPane, double total_executionTime, int schedule_num, int time_slice) {
         PriorityQueue<Process_Data> processes = null;
-        Queue<Process_Data> processes_RR = null;
+        Queue<Process_Data> processes_RR = new LinkedList<>();
         ArrayList<Gantt_data> gantt = new ArrayList<>();
         ArrayList<Scheduling_Result> processes_result = new ArrayList<>();
         LinkedList<Integer> not_in_ready_queue = new LinkedList<>();
@@ -57,8 +57,9 @@ public class Scheduling {
                 throw new IllegalStateException("Unexpected value: " + schedule_num);
         }
 
-        if(isRR) {
+        if (isRR) {
             Process_Data temp = null;
+            int timeSlice = time_slice;
             while (count > 0) {
                 int k = 0;
                 int size = not_in_ready_queue.size();
@@ -66,30 +67,45 @@ public class Scheduling {
                     int idx = not_in_ready_queue.get(i - k);
                     if (startTime >= Integer.parseInt((String) input_model.getValueAt(idx, 2))) {
                         Process_Data tmp = AddProcess.add(input_model, idx);
-                        processes_RR.offer(tmp);
+                        processes_RR.add(tmp);
                         int index = not_in_ready_queue.indexOf(idx);
                         not_in_ready_queue.remove(index);
                         k++;
                     }
                 }
-                if(temp != null){
-                    processes_RR.offer(temp);
+                if (temp != null && timeSlice == 0) {
+                    processes_RR.add(temp);
+                    timeSlice = time_slice;
                 }
                 if (processes_RR.size() > 0) {
-                    int p_size = processes_RR.size();
-                    for (int j = 0; j < p_size; ++j) {
-                        Process_Data tmp = processes_RR.poll();
+                    Process_Data tmp = processes_RR.peek();
+                    temp = tmp;
+                    System.out.println(tmp.getPID() + " " + tmp.getRemainTime());
+                    timeSlice--;
+                    tmp.setRemainTime();
+                    if (tmp.getStartTime() == -1) {
                         tmp.setStartTime(startTime);
-                        Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, tmp.getBurstTime());
-                        gantt.add(tmp_pair);
-                        startTime += tmp.getBurstTime();
-                        Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime);
+                    }
+                    Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
+                    gantt.add(tmp_pair);
+                    if (timeSlice == 0) {
+                        processes_RR.poll();
+                    }
+                    if (tmp.getRemainTime() == 0) {
+                        Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime + 1);
                         processes_result.add(tmp_result);
                         count--;
+                        if(timeSlice != 0)
+                            processes_RR.poll();
+                        timeSlice = time_slice;
+                        temp = null;
                     }
-                } else {
-                    startTime++;
                 }
+                else {
+                    temp = null;
+                    timeSlice = time_slice;
+                }
+                startTime++;
             }
         } else {
             while (count > 0) {
