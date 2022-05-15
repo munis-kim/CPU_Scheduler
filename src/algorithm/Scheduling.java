@@ -8,13 +8,14 @@ import logic.Set_OutputTable;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class Scheduling {
-    public static double run(DefaultTableModel input_model, DefaultTableModel output_model, JPanel contentPane, double total_executionTime, int schedule_num, int time_slice) {
+    public static double run(DefaultTableModel input_model, DefaultTableModel output_model, ArrayList<Gantt_data> gantt_original, int schedule_num, int time_slice) {
         PriorityQueue<Process_Data> processes = null;
         Queue<Process_Data> processes_RR = new LinkedList<>();
         ArrayList<Gantt_data> gantt = new ArrayList<>();
@@ -26,6 +27,9 @@ public class Scheduling {
         double waitingTime = 0;
         Boolean preemptive = false;
         Boolean isRR = false;
+        Boolean isHRRN = false;
+        int gantt_num = -1;
+        int gantt_idx = -1;
 
         for (int i = 0; i < count; ++i) {
             //int temp = Integer.parseInt((String) input_model.getValueAt(i, 1));
@@ -52,6 +56,7 @@ public class Scheduling {
                 break;
             case 5:
                 processes = HRRN.setPriority();
+                isHRRN = true;
                 break;
             case 6:
                 isRR = true;
@@ -83,14 +88,19 @@ public class Scheduling {
                 if (processes_RR.size() > 0) {
                     Process_Data tmp = processes_RR.peek();
                     temp = tmp;
-                    System.out.println(tmp.getPID() + " " + tmp.getRemainTime());
                     timeSlice--;
                     tmp.setRemainTime();
                     if (tmp.getStartTime() == -1) {
                         tmp.setStartTime(startTime);
                     }
-                    Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
-                    gantt.add(tmp_pair);
+                    if(gantt_num != tmp.getPID()) {
+                        gantt_num = tmp.getPID();
+                        Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
+                        gantt.add(tmp_pair);
+                        gantt_idx++;
+                    } else{
+                        gantt.get(gantt_idx).setRun_time();
+                    }
                     if (timeSlice == 0) {
                         processes_RR.poll();
                     }
@@ -98,13 +108,12 @@ public class Scheduling {
                         Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime + 1);
                         processes_result.add(tmp_result);
                         count--;
-                        if(timeSlice != 0)
+                        if (timeSlice != 0)
                             processes_RR.poll();
                         timeSlice = time_slice;
                         temp = null;
                     }
-                }
-                else {
+                } else {
                     temp = null;
                     timeSlice = time_slice;
                 }
@@ -119,6 +128,8 @@ public class Scheduling {
                     int idx = not_in_ready_queue.get(i - k);
                     if (startTime >= Integer.parseInt((String) input_model.getValueAt(idx, 2))) {
                         Process_Data tmp = AddProcess.add(input_model, idx);
+                        int arrive = tmp.getArriveTime();
+                        tmp.setWaitingTime(startTime - arrive);
                         processes.add(tmp);
                         int index = not_in_ready_queue.indexOf(idx);
                         not_in_ready_queue.remove(index);
@@ -129,8 +140,14 @@ public class Scheduling {
                 if (preemptive) {
                     if (processes.size() > 0) {
                         Process_Data tmp = processes.poll();
-                        Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
-                        gantt.add(tmp_pair);
+                        if(gantt_num != tmp.getPID()) {
+                            gantt_num = tmp.getPID();
+                            Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
+                            gantt.add(tmp_pair);
+                            gantt_idx++;
+                        } else{
+                            gantt.get(gantt_idx).setRun_time();
+                        }
                         if (tmp.getStartTime() == -1) {
                             tmp.setStartTime(startTime);
                         }
@@ -145,6 +162,32 @@ public class Scheduling {
                     }
                     startTime++;
 
+                } else if (isHRRN) {
+                    if (processes.size() > 0) {
+                        LinkedList<Process_Data> tmp_ = new LinkedList<>();
+                        Process_Data tmp = processes.poll();
+                        tmp.setStartTime(startTime);
+                        Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, tmp.getBurstTime());
+                        gantt.add(tmp_pair);
+                        int time = tmp.getBurstTime();
+                        startTime += time;
+                        Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime);
+                        processes_result.add(tmp_result);
+                        count--;
+                        int size_ = processes.size();
+                        for (int i = 0; i < size_; ++i) {
+                            Process_Data tmp_1 = processes.poll();
+                            tmp_1.setWaitingTime(time);
+                            tmp_.add(tmp_1);
+                        }
+                        for(int i = 0; i < size_; ++i){
+                            tmp = tmp_.get(0);
+                            tmp_.remove(0);
+                            processes.add(tmp);
+                        }
+                    } else {
+                        startTime++;
+                    }
                 } else {
                     if (processes.size() > 0) {
                         int p_size = processes.size();
@@ -166,9 +209,8 @@ public class Scheduling {
         }
 
         Set_OutputTable setting = new Set_OutputTable();
-        Gantt_Chart draw = new Gantt_Chart();
         waitingTime = setting.set(output_model, processes_result, input_row_count);
-        draw.draw(contentPane, gantt, total_executionTime);
+        gantt_original.addAll(gantt);
         return waitingTime;
     }
 }

@@ -1,14 +1,14 @@
 package datatype;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class HRRN {
-    public static PriorityQueue<Process_Data> setPriority(){
+public class My_Scheduling {
+    private PriorityQueue<Process_Data> set(){
         PriorityQueue<Process_Data> processes = new PriorityQueue<>((p1, p2) -> {
-            if(p1.getResponseRatio() < p2.getResponseRatio())
+            if(p1.getBurstTime() > p2.getBurstTime())
                 return 1;
-            else if(p1.getResponseRatio() > p2.getResponseRatio())
+            else if(p1.getResponseRatio() < p2.getResponseRatio())
                 return -1;
             else{
                 if(p1.getPriority() < p2.getPriority())
@@ -19,6 +19,7 @@ public class HRRN {
                     return 0;
             }
         });
+
         return processes;
     }
 }

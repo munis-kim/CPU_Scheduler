@@ -15,9 +15,15 @@ public class Gantt_data {
         return pID;
     }
 
-    public int getEnd_time() {
+    public int getStart_time() {
         return start_time;
     }
 
-    public int getRun_time() { return run_time; }
+    public int getRun_time() {
+        return run_time;
+    }
+
+    public void setRun_time() {
+        run_time++;
+    }
 }
