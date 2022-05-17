@@ -10,47 +10,57 @@ public class Process_Data {
     int StartTime = -1;
     int WaitingTime = 0;
 
-    public Process_Data(String name, int PID, int BurstTime, int ArriveTime, int Priority){
+    public Process_Data(String name, int PID, int BurstTime, int ArriveTime, int Priority) {
         this.name = name;
-        this.PID= PID;
+        this.PID = PID;
         this.BurstTime = BurstTime;
         this.ArriveTime = ArriveTime;
         this.Priority = Priority;
         this.RemainTime = BurstTime;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public int getPID(){ return PID; }
+    public int getPID() {
+        return PID;
+    }
 
-    public int getBurstTime(){
+    public int getBurstTime() {
         return BurstTime;
     }
 
-    public int getArriveTime(){
+    public int getArriveTime() {
         return ArriveTime;
     }
 
-    public int getPriority(){
+    public int getPriority() {
         return Priority;
     }
 
-    public int getRemainTime(){ return RemainTime; }
+    public int getRemainTime() {
+        return RemainTime;
+    }
 
-    public int getStartTime(){ return StartTime; }
+    public int getStartTime() {
+        return StartTime;
+    }
 
-    public void setStartTime(int time){ StartTime = time; }
+    public void setStartTime(int time) {
+        StartTime = time;
+    }
 
-    public void setRemainTime(){
+    public void setRemainTime() {
         RemainTime--;
     }
 
-    public void setWaitingTime(int time) { this.WaitingTime += time; }
+    public void setWaitingTime(int time) {
+        this.WaitingTime += time;
+    }
 
-    public double getResponseRatio(){
-        double ret = (double)(WaitingTime + BurstTime) / BurstTime;
+    public double getResponseRatio() {
+        double ret = (double) (WaitingTime + BurstTime) / BurstTime;
         return ret;
     }
 }
