@@ -29,6 +29,7 @@ public class CPU_Scheduler extends JFrame {
     JTextField text_cpu_utilization = new JTextField();
     JTextField text_throughput = new JTextField();
     JTextField text_timeslice = new JTextField();
+    JTextField text_context_switch = new JTextField();
 
     private final String[] input_table_header = {"Process", "PID", "도착시간", "실행시간", "우선순위"};
     private final String[] output_table_header = {"Process", "PID", "Turnaround time", "Waiting time", "Response time"};
@@ -90,7 +91,8 @@ public class CPU_Scheduler extends JFrame {
         JLabel response = new JLabel("Average ResponseTime");
         JLabel cpu = new JLabel("CPU Utilization");
         JLabel throughput = new JLabel("throughput");
-        JLabel timeslice = new JLabel("Time Slice");
+        JLabel context_switch = new JLabel("context switch");
+        JLabel timeslice = new JLabel("Time Quantum");
         execution.setBounds(600, 80, 150, 20);
         average.setBounds(600, 130, 150, 20);
         turnaround.setBounds(600, 180, 150, 20);
@@ -98,6 +100,7 @@ public class CPU_Scheduler extends JFrame {
         cpu.setBounds(600, 280, 150, 20);
         throughput.setBounds(600, 330, 150, 20);
         timeslice.setBounds(900, 10, 100, 30);
+        context_switch.setBounds(600, 380, 150, 20);
         contentPane.add(average);
         contentPane.add(execution);
         contentPane.add(timeslice);
@@ -105,20 +108,23 @@ public class CPU_Scheduler extends JFrame {
         contentPane.add(response);
         contentPane.add(cpu);
         contentPane.add(throughput);
+        contentPane.add(context_switch);
 
         text_execution.setBounds(750, 80, 50, 20);
         text_average.setBounds(750, 130, 50, 20);
         text_turnaround.setBounds(750, 180, 50, 20);
         text_response.setBounds(750, 230, 50, 20);
-        text_timeslice.setBounds(980, 15, 50, 20);
+        text_timeslice.setBounds(1000, 15, 50, 20);
         text_cpu_utilization.setBounds(750, 280, 50, 20);
         text_throughput.setBounds(750, 330, 50, 20);
+        text_context_switch.setBounds(750, 380, 50, 20);
         text_average.setEditable(false);
         text_execution.setEditable(false);
         text_turnaround.setEditable(false);
         text_response.setEditable(false);
         text_cpu_utilization.setEditable(false);
         text_throughput.setEditable(false);
+        text_context_switch.setEditable(false);
         text_timeslice.setEditable(true);
         text_average.setBackground(Color.white);
         text_execution.setBackground(Color.white);
@@ -127,6 +133,7 @@ public class CPU_Scheduler extends JFrame {
         text_cpu_utilization.setBackground(Color.white);
         text_timeslice.setBackground(Color.white);
         text_throughput.setBackground(Color.white);
+        text_context_switch.setBackground(Color.white);
         text_average.setBorder(null);
         text_execution.setBorder(null);
         text_turnaround.setBorder(null);
@@ -134,6 +141,7 @@ public class CPU_Scheduler extends JFrame {
         text_cpu_utilization.setBorder(null);
         text_throughput.setBorder(null);
         text_timeslice.setBorder(null);
+        text_context_switch.setBorder(null);
         contentPane.add(text_average);
         contentPane.add(text_execution);
         contentPane.add(text_timeslice);
@@ -141,6 +149,7 @@ public class CPU_Scheduler extends JFrame {
         contentPane.add(text_turnaround);
         contentPane.add(text_cpu_utilization);
         contentPane.add(text_throughput);
+        contentPane.add(text_context_switch);
 
         JButton fileOpenBtn = new JButton("OpenFile");
         fileOpenBtn.addActionListener(new ActionListener() {
@@ -179,7 +188,8 @@ public class CPU_Scheduler extends JFrame {
                 int scheduling_num = chooseAlgorithm.getSelectedIndex();
                 if (scheduling_num == 6)
                     time_slice = Integer.parseInt(text_timeslice.getText());
-                average_waitingTime = Scheduling.run(input_model, output_model, gantt, scheduling_num, time_slice);
+                Scheduling run = new Scheduling();
+                average_waitingTime = run.run(input_model, output_model, gantt, scheduling_num, time_slice);
                 for(int i = 0; i < output_model.getRowCount(); ++i) {
                     average_responseTime += Double.parseDouble((String) output_model.getValueAt(i, 4));
                     average_turnaroundTime += Double.parseDouble((String) output_model.getValueAt(i, 2));
@@ -190,8 +200,9 @@ public class CPU_Scheduler extends JFrame {
                 Gantt_Chart draw_chart = new Gantt_Chart();
                 total_executionTime = gantt.get(gantt.size() - 1).getStart_time();
                 total_executionTime += gantt.get(gantt.size() - 1).getRun_time();
+                text_context_switch.setText(String.valueOf(gantt.size() - 1));
                 draw_chart.setGantt(gantt, total_executionTime);
-                draw_chart.setBounds(600, 380, 525, 200);
+                draw_chart.setBounds(600, 450, 525, 200);
                 contentPane.add(draw_chart);
                 draw_chart.revalidate();
                 draw_chart.repaint();
@@ -232,6 +243,8 @@ public class CPU_Scheduler extends JFrame {
         text_execution.setText(null);
         text_response.setText(null);
         text_turnaround.setText(null);
+        text_cpu_utilization.setText(null);
+        text_throughput.setText(null);
         total_executionTime = 0;
         total_burstTime = 0;
         process_count = 0;

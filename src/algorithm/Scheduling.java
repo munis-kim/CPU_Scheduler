@@ -2,85 +2,79 @@ package algorithm;
 
 import datatype.*;
 import logic.AddProcess;
-import logic.Gantt_Chart;
 import logic.ResultProcess;
 import logic.Set_OutputTable;
 
-import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class Scheduling {
-    public static double run(DefaultTableModel input_model, DefaultTableModel output_model, ArrayList<Gantt_data> gantt_original, int schedule_num, int time_slice) {
-        PriorityQueue<Process_Data> processes = null;
-        Queue<Process_Data> processes_RR = new LinkedList<>();
-        ArrayList<Gantt_data> gantt = new ArrayList<>();
-        ArrayList<Scheduling_Result> processes_result = new ArrayList<>();
-        LinkedList<Integer> not_in_ready_queue = new LinkedList<>();
+    private PriorityQueue<Process_Data> processes = null;
+    private PriorityQueue<Process_Data>[] my_processes = new PriorityQueue[4];
+    private Queue<Process_Data> processes_RR = new LinkedList<>();
+    private ArrayList<Gantt_data> gantt = new ArrayList<>();
+    private ArrayList<Scheduling_Result> processes_result = new ArrayList<>();
+    private PriorityQueue<Process_Data> not_in_ready_queue = Not_Ready_Queue.setPriority();
+    private int count;
+    private int startTime = 0;
+    private double waitingTime = 0;
+    private Boolean preemptive = false;
+    private Boolean isRR = false;
+    private Boolean isHRRN = false;
+    private Boolean isMine = false;
+    private int gantt_num = -1;
+    private int gantt_idx = -1;
+
+    public double run(DefaultTableModel input_model, DefaultTableModel output_model, ArrayList<Gantt_data> gantt_original, int schedule_num, int time_slice) {
+        gantt_num = -1;
+        gantt_idx = -1;
+        startTime = 0;
+        waitingTime = 0;
         int input_row_count = input_model.getRowCount();
-        int startTime = 0;
-        int count = input_row_count;
-        double waitingTime = 0;
-        Boolean preemptive = false;
-        Boolean isRR = false;
-        Boolean isHRRN = false;
-        int gantt_num = -1;
-        int gantt_idx = -1;
+        count = input_row_count;
 
         for (int i = 0; i < count; ++i) {
-            //int temp = Integer.parseInt((String) input_model.getValueAt(i, 1));
-            not_in_ready_queue.add(i);
+            not_in_ready_queue.add(AddProcess.add(input_model, i));
         }
 
         switch (schedule_num) {
-            case 0:
-                processes = FCFS.setPriority();
-                break;
-            case 1:
-                processes = SJF.setPriority();
-                break;
-            case 2:
+            case 0 -> processes = FCFS.setPriority();
+            case 1 -> processes = SJF.setPriority();
+            case 2 -> {
                 processes = SJF.setPriority();
                 preemptive = true;
-                break;
-            case 3:
-                processes = Priority.setPriority();
-                break;
-            case 4:
+            }
+            case 3 -> processes = Priority.setPriority();
+            case 4 -> {
                 processes = Priority.setPriority();
                 preemptive = true;
-                break;
-            case 5:
+            }
+            case 5 -> {
                 processes = HRRN.setPriority();
                 isHRRN = true;
-                break;
-            case 6:
-                isRR = true;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + schedule_num);
+            }
+            case 6 -> isRR = true;
+            case 7 -> {
+                for (int i = 0; i < 4; ++i) {
+                    my_processes[i] = My_Scheduling.setPriority();
+                }
+                isMine = true;
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + schedule_num);
         }
 
         if (isRR) {
             Process_Data temp = null;
             int timeSlice = time_slice;
             while (count > 0) {
-                int k = 0;
-                int size = not_in_ready_queue.size();
-                for (int i = 0; i < size; ++i) {
-                    int idx = not_in_ready_queue.get(i - k);
-                    if (startTime >= Integer.parseInt((String) input_model.getValueAt(idx, 2))) {
-                        Process_Data tmp = AddProcess.add(input_model, idx);
-                        processes_RR.add(tmp);
-                        int index = not_in_ready_queue.indexOf(idx);
-                        not_in_ready_queue.remove(index);
-                        k++;
-                    }
+                while (not_in_ready_queue.size() > 0 && not_in_ready_queue.peek().getArriveTime() <= startTime) {
+                    Process_Data tmp = not_in_ready_queue.poll();
+                    processes_RR.add(tmp);
                 }
+
                 if (temp != null && timeSlice == 0) {
                     processes_RR.add(temp);
                     timeSlice = time_slice;
@@ -93,12 +87,12 @@ public class Scheduling {
                     if (tmp.getStartTime() == -1) {
                         tmp.setStartTime(startTime);
                     }
-                    if(gantt_num != tmp.getPID()) {
+                    if (gantt_num != tmp.getPID()) {
                         gantt_num = tmp.getPID();
                         Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
                         gantt.add(tmp_pair);
                         gantt_idx++;
-                    } else{
+                    } else {
                         gantt.get(gantt_idx).setRun_time();
                     }
                     if (timeSlice == 0) {
@@ -119,52 +113,69 @@ public class Scheduling {
                 }
                 startTime++;
             }
+        } else if (isMine) {
+            int[] myScheduleTime = {8, 4, 2, 1};
+            int[] remainTime = {7, 3, 1, 0};
+            int cycleTime = 0;
+            for (int j : myScheduleTime) cycleTime += j;
+            int remainCycleTime = cycleTime;
+            int inQueueProcess = 0;
+            while (count > 0) {
+                while (not_in_ready_queue.size() > 0 && not_in_ready_queue.peek().getArriveTime() <= startTime) {
+                    Process_Data tmp = not_in_ready_queue.poll();
+                    int priority = tmp.getPriority() / 4;
+                    my_processes[3 - priority].add(tmp);
+                }
+
+                if (remainCycleTime > 0) {
+                    boolean progress = false;
+                    if (remainCycleTime > remainTime[0] && my_processes[0].size() != 0) {
+                        Process_Data tmp = my_processes[0].poll();
+                        preemtive_run(tmp);
+                        progress = true;
+                    } else if (remainCycleTime > remainTime[1] && my_processes[1].size() != 0) {
+                        Process_Data tmp = my_processes[1].poll();
+                        preemtive_run(tmp);
+                        progress = true;
+                    } else if (remainCycleTime > remainTime[2] && my_processes[2].size() != 0) {
+                        Process_Data tmp = my_processes[2].poll();
+                        preemtive_run(tmp);
+                        progress = true;
+                    } else if (my_processes[3].size() != 0) {
+                        Process_Data tmp = my_processes[3].poll();
+                        preemtive_run(tmp);
+                        progress = true;
+                    }
+                    inQueueProcess = 0;
+                    for (PriorityQueue<Process_Data> i : my_processes) {
+                        inQueueProcess += i.size();
+                    }
+                    if (progress) {
+                        startTime++;
+                        remainCycleTime--;
+                    } else if (inQueueProcess > 0) {
+                        remainCycleTime = cycleTime;
+                    } else startTime++;
+                } else remainCycleTime = cycleTime;
+            }
         } else {
             while (count > 0) {
-                int k = 0;
-                int size = not_in_ready_queue.size();
-
-                for (int i = 0; i < size; ++i) {
-                    int idx = not_in_ready_queue.get(i - k);
-                    if (startTime >= Integer.parseInt((String) input_model.getValueAt(idx, 2))) {
-                        Process_Data tmp = AddProcess.add(input_model, idx);
-                        int arrive = tmp.getArriveTime();
-                        tmp.setWaitingTime(startTime - arrive);
-                        processes.add(tmp);
-                        int index = not_in_ready_queue.indexOf(idx);
-                        not_in_ready_queue.remove(index);
-                        k++;
-                    }
+                while (not_in_ready_queue.size() > 0 && not_in_ready_queue.peek().getArriveTime() <= startTime) {
+                    Process_Data tmp = not_in_ready_queue.poll();
+                    int arrive = tmp.getArriveTime();
+                    tmp.setWaitingTime(startTime - arrive);
+                    processes.add(tmp);
                 }
 
                 if (preemptive) {
                     if (processes.size() > 0) {
                         Process_Data tmp = processes.poll();
-                        if(gantt_num != tmp.getPID()) {
-                            gantt_num = tmp.getPID();
-                            Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
-                            gantt.add(tmp_pair);
-                            gantt_idx++;
-                        } else{
-                            gantt.get(gantt_idx).setRun_time();
-                        }
-                        if (tmp.getStartTime() == -1) {
-                            tmp.setStartTime(startTime);
-                        }
-                        tmp.setRemainTime();
-                        int time = tmp.getRemainTime();
-                        if (time == 0) {
-                            Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime + 1);
-                            processes_result.add(tmp_result);
-                            count--;
-                        } else
-                            processes.add(tmp);
+                        preemtive_run(tmp);
                     }
                     startTime++;
-
                 } else if (isHRRN) {
                     if (processes.size() > 0) {
-                        LinkedList<Process_Data> tmp_ = new LinkedList<>();
+                        Queue<Process_Data> tmp_ = new LinkedList<>();
                         Process_Data tmp = processes.poll();
                         tmp.setStartTime(startTime);
                         Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, tmp.getBurstTime());
@@ -180,9 +191,8 @@ public class Scheduling {
                             tmp_1.setWaitingTime(time);
                             tmp_.add(tmp_1);
                         }
-                        for(int i = 0; i < size_; ++i){
-                            tmp = tmp_.get(0);
-                            tmp_.remove(0);
+                        for (int i = 0; i < size_; ++i) {
+                            tmp = tmp_.poll();
                             processes.add(tmp);
                         }
                     } else {
@@ -190,17 +200,14 @@ public class Scheduling {
                     }
                 } else {
                     if (processes.size() > 0) {
-                        int p_size = processes.size();
-                        for (int j = 0; j < p_size; ++j) {
-                            Process_Data tmp = processes.poll();
-                            tmp.setStartTime(startTime);
-                            Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, tmp.getBurstTime());
-                            gantt.add(tmp_pair);
-                            startTime += tmp.getBurstTime();
-                            Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime);
-                            processes_result.add(tmp_result);
-                            count--;
-                        }
+                        Process_Data tmp = processes.poll();
+                        tmp.setStartTime(startTime);
+                        Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, tmp.getBurstTime());
+                        gantt.add(tmp_pair);
+                        startTime += tmp.getBurstTime();
+                        Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime);
+                        processes_result.add(tmp_result);
+                        count--;
                     } else {
                         startTime++;
                     }
@@ -212,5 +219,30 @@ public class Scheduling {
         waitingTime = setting.set(output_model, processes_result, input_row_count);
         gantt_original.addAll(gantt);
         return waitingTime;
+    }
+
+    private void preemtive_run(Process_Data tmp) {
+        if (gantt_num != tmp.getPID()) {
+            gantt_num = tmp.getPID();
+            Gantt_data tmp_pair = new Gantt_data(tmp.getPID(), startTime, 1);
+            gantt.add(tmp_pair);
+            gantt_idx++;
+        } else {
+            gantt.get(gantt_idx).setRun_time();
+        }
+        if (tmp.getStartTime() == -1)
+            tmp.setStartTime(startTime);
+        tmp.setRemainTime();
+        int time = tmp.getRemainTime();
+        if (time == 0) {
+            Scheduling_Result tmp_result = ResultProcess.add(tmp, startTime + 1);
+            processes_result.add(tmp_result);
+            count--;
+        } else {
+            if (isMine) {
+                int priority = tmp.getPriority() / 4;
+                my_processes[3 - priority].add(tmp);
+            } else processes.add(tmp);
+        }
     }
 }
