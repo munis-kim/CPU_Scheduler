@@ -212,7 +212,7 @@ public class CPU_Scheduler extends JFrame {
                 average_waitingTime = ((double) Math.round(average_waitingTime * 100) / 100);
                 average_turnaroundTime = ((double) Math.round(average_turnaroundTime * 100) / 100);
                 average_responseTime = ((double) Math.round(average_responseTime * 100) / 100);
-                cpu_utilization = ((double) Math.round(total_executionTime / total_burstTime) * 100) / 100;
+                cpu_utilization = ((double)Math.round((total_burstTime / total_executionTime) * 100)) / 100;
                 throughput_t = ((double) Math.round(process_count / total_executionTime * 10000) / 10000);
                 text_average.setText(String.valueOf(average_waitingTime));
                 text_execution.setText(String.valueOf(total_burstTime));
